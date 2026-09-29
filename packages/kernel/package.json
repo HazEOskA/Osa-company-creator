@@ -1,0 +1,6 @@
+{
+  "name": "@osa/company-kernel",
+  "version": "0.1.0",
+  "private": true,
+  "main": "../../dist/packages/kernel/src/index.js"
+}

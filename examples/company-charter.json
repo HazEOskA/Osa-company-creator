@@ -1,0 +1,15 @@
+{
+  "mission": "Find, validate and grow one profitable product without violating the company charter.",
+  "currency": "EUR",
+  "authorityCeiling": "A3",
+  "prohibitedActions": [
+    "sign_legal_contract",
+    "irreversible_external_delete",
+    "unbounded_spend"
+  ],
+  "successMetrics": [
+    "verified_revenue",
+    "gross_margin",
+    "retention"
+  ]
+}

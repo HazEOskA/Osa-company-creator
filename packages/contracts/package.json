@@ -1,0 +1,6 @@
+{
+  "name": "@osa/company-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "main": "../../dist/packages/contracts/src/index.js"
+}

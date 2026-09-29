@@ -1,0 +1,21 @@
+{
+  "name": "osa-company-creator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Proof-native, provider-neutral runtime for verifiable autonomous companies.",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/packages/kernel/test/*.test.js",
+    "check": "npm run test"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

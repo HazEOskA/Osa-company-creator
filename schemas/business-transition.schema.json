@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://osatechgpt.dev/schemas/business-transition.schema.json",
+  "title": "BusinessTransitionProposal",
+  "type": "object",
+  "required": ["transitionId", "fromStateHash", "proposedBy", "reason", "mutation", "authority", "evidenceIds", "verifications", "requiredProof"],
+  "properties": {
+    "transitionId": { "type": "string", "minLength": 1 },
+    "fromStateHash": { "type": "string", "minLength": 1 },
+    "reason": { "type": "string", "minLength": 1 },
+    "requiredProof": { "enum": ["P0", "P1", "P2", "P3", "P4", "P5", "P6"] },
+    "evidenceIds": { "type": "array", "items": { "type": "string" } },
+    "mutation": {
+      "type": "object",
+      "required": ["set"],
+      "properties": { "set": { "type": "object" } },
+      "additionalProperties": false
+    },
+    "proposedBy": { "type": "object" },
+    "authority": { "type": "object" },
+    "verifications": { "type": "array", "items": { "type": "object" } }
+  },
+  "additionalProperties": false
+}
