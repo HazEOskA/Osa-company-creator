@@ -17,7 +17,16 @@ export type CompanyEventType =
   | "ReplayCompleted"
   | "ChallengerPromoted"
   | "ChallengerRejected"
-  | "CircuitBreakerTriggered";
+  | "CircuitBreakerTriggered"
+  | "TenantScopeViolationDetected"
+  | "SecretScopeViolationDetected"
+  | "WorkQueued"
+  | "WorkLeased"
+  | "LeaseExpired"
+  | "WorkCommitted"
+  | "DeadLettered"
+  | "ProviderQuarantined"
+  | "OutboxPublished";
 
 export interface CompanyEvent<T = unknown> {
   id: string;

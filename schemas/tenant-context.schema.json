@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://osatechgpt.dev/obtp/tenant-context.schema.json",
+  "title": "TenantContext",
+  "type": "object",
+  "required": ["tenantId", "companyId", "environment", "dataClass"],
+  "properties": {
+    "tenantId": { "type": "string", "minLength": 1 },
+    "companyId": { "type": "string", "minLength": 1 },
+    "environment": { "enum": ["development", "staging", "production"] },
+    "dataClass": { "enum": ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "SECRET", "REGULATED"] },
+    "region": { "type": "string" }
+  },
+  "additionalProperties": false
+}

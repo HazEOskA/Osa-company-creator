@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://osatechgpt.dev/obtp/provider-trust.schema.json",
+  "title": "ProviderTrustProfile",
+  "type": "object",
+  "required": [
+    "providerId",
+    "allowedDataClasses",
+    "allowedRegions",
+    "maxAuthorityLevel",
+    "status"
+  ],
+  "properties": {
+    "providerId": { "type": "string", "minLength": 1 },
+    "allowedDataClasses": {
+      "type": "array",
+      "items": { "enum": ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "SECRET", "REGULATED"] },
+      "uniqueItems": true
+    },
+    "allowedRegions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "supportsZeroRetention": { "type": "boolean" },
+    "supportsPrivateNetworking": { "type": "boolean" },
+    "maxAuthorityLevel": { "enum": ["A0", "A1", "A2", "A3", "A4", "A5", "A6"] },
+    "status": { "enum": ["TRUSTED", "RESTRICTED", "QUARANTINED"] }
+  },
+  "additionalProperties": false
+}

@@ -6,3 +6,8 @@ export * from "./economics";
 export * from "./capability";
 export * from "./transition";
 export * from "./events";
+export * from "./tenancy";
+export * from "./security";
+export * from "./distributed";
+export * from "./obtp";
+export * from "./sre";

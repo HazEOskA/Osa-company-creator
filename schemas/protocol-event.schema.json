@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://osatechgpt.dev/obtp/protocol-event.schema.json",
+  "title": "ProtocolEvent",
+  "type": "object",
+  "required": [
+    "protocolVersion",
+    "eventId",
+    "tenantId",
+    "companyId",
+    "eventType",
+    "source",
+    "correlationId",
+    "sequence",
+    "occurredAt",
+    "payloadHash",
+    "payloadRef"
+  ],
+  "properties": {
+    "protocolVersion": { "type": "string", "minLength": 1 },
+    "eventId": { "type": "string", "minLength": 1 },
+    "tenantId": { "type": "string", "minLength": 1 },
+    "companyId": { "type": "string", "minLength": 1 },
+    "eventType": { "type": "string", "minLength": 1 },
+    "source": { "type": "string", "minLength": 1 },
+    "causationId": { "type": "string" },
+    "correlationId": { "type": "string", "minLength": 1 },
+    "sequence": { "type": "integer", "minimum": 0 },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "payloadHash": { "type": "string", "minLength": 1 },
+    "payloadRef": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}

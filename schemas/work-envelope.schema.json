@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://osatechgpt.dev/obtp/work-envelope.schema.json",
+  "title": "WorkEnvelope",
+  "type": "object",
+  "required": [
+    "protocolVersion",
+    "workId",
+    "tenantId",
+    "companyId",
+    "executionId",
+    "capability",
+    "authorityReceiptId",
+    "requiredProof",
+    "inputRef",
+    "deadline",
+    "idempotencyKey",
+    "attempt",
+    "state"
+  ],
+  "properties": {
+    "protocolVersion": { "type": "string", "minLength": 1 },
+    "workId": { "type": "string", "minLength": 1 },
+    "tenantId": { "type": "string", "minLength": 1 },
+    "companyId": { "type": "string", "minLength": 1 },
+    "executionId": { "type": "string", "minLength": 1 },
+    "capability": { "type": "string", "minLength": 1 },
+    "authorityReceiptId": { "type": "string", "minLength": 1 },
+    "requiredProof": { "enum": ["P0", "P1", "P2", "P3", "P4", "P5", "P6"] },
+    "inputRef": { "type": "string", "minLength": 1 },
+    "deadline": { "type": "string", "format": "date-time" },
+    "idempotencyKey": { "type": "string", "minLength": 1 },
+    "attempt": { "type": "integer", "minimum": 1 },
+    "state": {
+      "enum": [
+        "CREATED",
+        "AUTHORIZED",
+        "QUEUED",
+        "LEASED",
+        "RUNNING",
+        "EVIDENCE_PENDING",
+        "VERIFYING",
+        "VERIFIED",
+        "TRANSITION_PENDING",
+        "COMMITTED",
+        "RETRYABLE_FAILURE",
+        "BLOCKED",
+        "QUARANTINED",
+        "DEAD_LETTER"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

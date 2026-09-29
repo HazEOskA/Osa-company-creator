@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://osatechgpt.dev/obtp/artifact.schema.json",
+  "title": "ArtifactRef",
+  "type": "object",
+  "required": ["uri", "sha256", "size", "mediaType", "tenantId", "executionId"],
+  "properties": {
+    "uri": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "size": { "type": "integer", "minimum": 0 },
+    "mediaType": { "type": "string", "minLength": 1 },
+    "tenantId": { "type": "string", "minLength": 1 },
+    "executionId": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}
