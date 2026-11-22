@@ -17,3 +17,4 @@ export * from "./artifact-integrity";
 export * from "./outbox";
 export * from "./obtp-kernel";
 export * from "./circuit-breaker";
+export * from "./trusted-transition";

@@ -1,75 +1,70 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import type {
-  BusinessTransitionProposal,
-  CapabilityPerformance,
-  VerificationReceipt,
-} from "../../contracts/src/index";
+import type { CapabilityPerformance } from "../../contracts/src/index";
+import type { ShadowTransitionRequest } from "../../contracts/src/transition";
 import {
-  applyTransition,
-  createFork,
-  createInitialState,
-  evaluateAuthority,
-  evaluateEconomicOutcome,
-  InMemoryEventLog,
-  KernelInvariantError,
-  routeCapability,
+  OfflineShadowTransitionGate,
+  computeShadowMutationDigest, computeShadowIntentDigest,
+  createFork, createInitialState,
+  evaluateEconomicOutcome, InMemoryEventLog, routeCapability,
 } from "../src/index";
 
-const p3: VerificationReceipt = {
-  id: "VR-1",
-  subject: "artifact://landing-v1",
-  verifier: "deterministic-test-suite",
-  proofLevel: "P3",
-  checks: [{ id: "build", description: "Build passes", passed: true }],
-  result: "PASS",
-};
-
-function validProposal(stateHash: string): BusinessTransitionProposal {
-  return {
-    transitionId: "TR-1",
-    fromStateHash: stateHash,
-    proposedBy: { id: "planner-1", type: "agent" },
-    reason: "Verified experiment advanced the company state.",
-    mutation: { set: { landingVersion: 1 } },
-    authority: evaluateAuthority({
-      actor: { id: "planner-1", type: "agent" },
-      action: "internal_artifact_transition",
-      requiredLevel: "A2",
-      grantedLevel: "A2",
-      policyId: "POL-1",
-      policyAllows: true,
-    }),
-    evidenceIds: ["EV-1"],
-    verifications: [p3],
-    requiredProof: "P3",
+function validShadowCase(requiredProof: "P3" | "P4" = "P3") {
+  const state = createInitialState("COMPANY-1", { landingVersion: 0 });
+  const scope = { tenantId: "tenant-1", organizationId: "org-1",
+    companyId: "COMPANY-1", projectId: "project-1" };
+  const gate = new OfflineShadowTransitionGate({
+    scope,
+    policy: { policyId: "POL-1", policyDigest: "a".repeat(64),
+      requiredAuthorityLevel: "A2", minimumProofLevel: "P3",
+      allowedActions: ["internal_artifact_transition"], allowedActorIds: ["planner-1"] },
+    authorityIssuerId: "synthetic-gate", proofIssuerId: "synthetic-proof",
+    authorityTestKey: "TEST-ONLY-AUTHORITY-NOT-PROD",
+    proofTestKey: "TEST-ONLY-PROOF-NOT-PROD",
+  });
+  const basic = {
+    schema: "osa.creator.shadow-transition.v1" as const, mode: "SHADOW_ONLY" as const,
+    transitionId: "TR-1", scope,
+    actor: { id: "planner-1", type: "agent" as const },
+    action: "internal_artifact_transition",
+    bindingDigest: "b".repeat(64), policyDigest: "a".repeat(64),
+    requestedAuthorityLevel: "A2" as const, requiredProof,
+    fromStateHash: state.stateHash, expectedVersion: 0,
+    idempotencyKey: "idem-1", mutation: { set: { landingVersion: 1 } },
   };
+  const digest = computeShadowMutationDigest(basic);
+  const input = { ...basic, mutationDigest: digest };
+  const req: ShadowTransitionRequest = {
+    ...input, intentDigest: computeShadowIntentDigest(input),
+  };
+  return { state, req, gate, auth: gate.issueSyntheticAuthority(req),
+    proof: gate.issueSyntheticProof(req) };
 }
 
-test("valid transition advances state and produces a new hash", () => {
-  const state = createInitialState("COMPANY-1", { landingVersion: 0 });
-  const result = applyTransition(state, validProposal(state.stateHash));
-
-  assert.equal(result.state.version, 1);
-  assert.equal(result.state.data.landingVersion, 1);
-  assert.notEqual(result.state.stateHash, state.stateHash);
-  assert.equal(result.receipt.decision, "ACCEPT");
+test("valid shadow transition computes isolated state without production commit", () => {
+  const { gate, state, req, auth, proof } = validShadowCase();
+  const result = gate.evaluate(state, req, auth, proof, "2026-11-22T10:00:00Z");
+  assert.equal(result.status, "SIMULATED");
+  assert.equal(result.productionWrite, false);
+  if (result.status !== "SIMULATED") throw new Error("SHADOW_VALID_CASE_FAILED");
+  assert.equal(result.shadowState.version, 1);
+  assert.equal(result.shadowState.data.landingVersion, 1);
+  assert.notEqual(result.shadowState.stateHash, state.stateHash);
+  assert.equal(state.version, 0);
+  assert.equal(state.data.landingVersion, 0);
+  assert.equal(result.receipt.mode, "SHADOW_ONLY");
 });
 
-test("state mutation is blocked without authority", () => {
-  const state = createInitialState("COMPANY-1");
-  const proposal = validProposal(state.stateHash);
-  proposal.authority = { ...proposal.authority, allowed: false };
-
-  assert.throws(() => applyTransition(state, proposal), /NO AUTHORITY/);
+test("shadow transition is blocked without authority", () => {
+  const { gate, state, req, proof } = validShadowCase();
+  const auth = gate.issueSyntheticAuthority(req, { decision: "DENY" });
+  assert.equal(gate.evaluate(state, req, auth, proof, "2026-11-22T10:00:00Z").status, "DENY");
 });
 
-test("state mutation is blocked when proof is below requirement", () => {
-  const state = createInitialState("COMPANY-1");
-  const proposal = validProposal(state.stateHash);
-  proposal.requiredProof = "P4";
-
-  assert.throws(() => applyTransition(state, proposal), /NO REQUIRED PROOF/);
+test("shadow transition is blocked when proof is below requirement", () => {
+  const { gate, state, req, auth } = validShadowCase("P4");
+  const proof = gate.issueSyntheticProof(req, { proofLevel: "P3" });
+  assert.equal(gate.evaluate(state, req, auth, proof, "2026-11-22T10:00:00Z").status, "DENY");
 });
 
 test("capability routing is contextual and evidence-based", () => {
@@ -160,11 +155,10 @@ test("event log can replay deterministic projections", () => {
   assert.equal(count, 2);
 });
 
-test("invalid transition parent is rejected", () => {
-  const state = createInitialState("COMPANY-1");
-  const proposal = validProposal("wrong-parent");
-  assert.throws(
-    () => applyTransition(state, proposal),
-    { message: /parent does not match/ },
-  );
+test("invalid transition parent is rejected before any shadow state advance", () => {
+  const { gate, state, req, auth, proof } = validShadowCase();
+  const altered = { ...req, fromStateHash: "f".repeat(64) };
+  const result = gate.evaluate(state, altered, auth, proof, "2026-11-22T10:00:00Z");
+  assert.equal(result.status, "DENY");
+  assert.equal(result.reason, "STATE_CAS_MISMATCH");
 });

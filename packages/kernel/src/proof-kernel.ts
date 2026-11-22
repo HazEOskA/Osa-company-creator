@@ -13,7 +13,13 @@ export function evaluateProof(requirement: ProofRequirement): {
   achievedLevel: ProofLevel;
   reason: string;
 } {
-  const passing = requirement.verifications.filter((item) => item.result === "PASS");
+  // A claimed PASS with failed or missing checks cannot count as verified.
+  if (requirement.verifications.some(item =>
+    item.result === "PASS" &&
+    (!Array.isArray(item.checks) || item.checks.length === 0 ||
+      item.checks.some(check => check.passed !== true)))) {
+    return { passed: false, achievedLevel: "P0", reason: "Verification checks failed or missing." };
+  }  const passing = requirement.verifications.filter((item) => item.result === "PASS");
   const achieved = passing.reduce<ProofLevel>(
     (current, receipt) => (rank(receipt.proofLevel) > rank(current) ? receipt.proofLevel : current),
     "P0",
